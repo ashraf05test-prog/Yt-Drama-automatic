@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.aar binary
+*.so  binary
+app/src/main/assets/bin/**/yt-dlp binary
+app/libs/*.aar binary
+gradlew text eol=lf
