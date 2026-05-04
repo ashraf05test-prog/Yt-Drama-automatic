@@ -1,0 +1,3 @@
+# Copy to local.properties and adjust if building locally.
+# GitHub Actions does NOT need this file — the workflow sets ANDROID_HOME.
+sdk.dir=/path/to/your/Android/sdk

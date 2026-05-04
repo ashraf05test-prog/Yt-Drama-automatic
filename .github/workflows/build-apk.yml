@@ -1,0 +1,61 @@
+name: Build debug APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Assemble debug APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-35 build-tools;34.0.0"
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Sanity-check bundled binaries
+        run: |
+          echo "=== yt-dlp ARMv7 ==="
+          ls -lh app/src/main/jniLibs/armeabi-v7a/libytdlp.so || (echo "::error::ARMv7 yt-dlp missing" && exit 1)
+          echo "=== yt-dlp ARM64 ==="
+          ls -lh app/src/main/jniLibs/arm64-v8a/libytdlp.so || (echo "::error::ARM64 yt-dlp missing" && exit 1)
+          echo "=== FFmpegKit AAR ==="
+          ls -lh app/libs/ffmpeg-kit-full-gpl-6.0-2.LTS.aar || (echo "::error::FFmpegKit AAR missing" && exit 1)
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build debug APK
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VideoTransform-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30

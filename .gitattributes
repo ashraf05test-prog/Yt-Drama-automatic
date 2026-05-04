@@ -1,0 +1,5 @@
+# Treat the bundled FFmpegKit AAR and yt-dlp binaries as binary
+*.aar binary
+*.so binary
+*.jar binary
+gradlew text eol=lf
